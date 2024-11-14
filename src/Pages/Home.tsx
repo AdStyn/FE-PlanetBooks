@@ -6,8 +6,52 @@ import bukuscifi from "../assets/bukuscifi.png";
 import { useNavigate } from "react-router-dom";
 import SectionCard from "../Components/Section/SectionCard";
 import { produk } from "../dummy/data";
+import { useEffect, useState } from "react";
+import axios from "axios";
 function Home() {
   const navigate = useNavigate();
+  const [pilihBuku, setPilihBuku] = useState([]); // State untuk menyimpan data produk
+  const [loading, setLoading] = useState(true); // State untuk loading
+  const [error, setError] = useState<string | null>(null); // Bisa menerima string atau null
+
+  // Function untuk mengambil data produk dari backend
+  const fetchProdukBukuData = async () => {
+    try {
+      const response = await axios.get(
+        "https://z17xzb9r-3000.asse.devtunnels.ms/kategori/tampil"
+      );
+      setPilihBuku(response.data.data); // Set data yang diterima dari backend
+      setLoading(false); // Matikan loading saat data sudah didapat
+    } catch (error) {
+      console.error("Error fetching produk data:", error);
+      setError("Failed to load produk data, please try again later.");
+      setLoading(false); // Matikan loading meski terjadi error
+    }
+  };
+
+  // Panggil function untuk mendapatkan data produk saat komponen dimuat
+  useEffect(() => {
+    fetchProdukBukuData();
+  }, []); // Dependency array kosong supaya hanya dipanggil sekali
+
+  // Jika masih loading, tampilkan loading
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // Jika ada error, tampilkan pesan error
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white text-white mt-12 flex-1 flex flex-col gap-36 transition-all duration-300">
       {/* Hero Section */}

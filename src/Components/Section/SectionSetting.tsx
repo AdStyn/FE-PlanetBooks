@@ -1,20 +1,19 @@
-import React, { useState, FC, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-interface User {
-  image: string; // URL or path to user's current profile image
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: { image: string | undefined };
 }
 
-interface OnClose {
-  (): void;
-}
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, user }) => {
+  if (!isOpen) return null;
 
-const SectionSetting: FC<{ user: User; onClose: OnClose }> = ({
-  user,
-  onClose,
-}) => {
+  const userImage = user?.image || "/default-profile.png";
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewImage, setPreviewImage] = useState(user.image);
+  const [previewImage, setPreviewImage] = useState(userImage);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +28,7 @@ const SectionSetting: FC<{ user: User; onClose: OnClose }> = ({
       };
       reader.readAsDataURL(file);
     } else {
-      setPreviewImage(user.image);
+      setPreviewImage(userImage);
     }
   };
 
@@ -47,8 +46,8 @@ const SectionSetting: FC<{ user: User; onClose: OnClose }> = ({
     formData.append("image", selectedFile);
 
     try {
-      const Response = await axios.post(
-        "https://z17xzb9r-3000.asse.devtunnels.ms/",
+      const response = await axios.post(
+        "https://px973nrz-3000.asse.devtunnels.ms/users/updateImage",
         formData,
         {
           headers: {
@@ -58,7 +57,7 @@ const SectionSetting: FC<{ user: User; onClose: OnClose }> = ({
         }
       );
 
-      console.log("Image updated successfully:", Response.data);
+      console.log("Image updated successfully:", response.data);
       onClose();
     } catch (error) {
       console.error("Error updating image:", error);
@@ -71,40 +70,57 @@ const SectionSetting: FC<{ user: User; onClose: OnClose }> = ({
   useEffect(() => {
     return () => {
       setSelectedFile(null);
-      setPreviewImage(user.image);
+      setPreviewImage(userImage);
       setIsLoading(false);
       setError(null);
     };
-  }, [onclose]);
+  }, [onClose, userImage]);
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-4 shadow-lg">
-        <h3 className="text-lg font-medium mb-4 text-center">Update Profile Picture</h3>
+    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Perbarui Foto Profil</h2>
+          <button
+            className="text-gray-500"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
         <div className="flex flex-col items-center">
-          <img
-            src={previewImage}
-            alt="image"
-            className="w-40 h-40 rounded-full bg-gray-200 border-2 border-gray-300 mb-4 object-cover"
-          />
-          <label htmlFor="profile-image">
+          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-4 relative overflow-hidden">
+            {/* Display the image or the alt text */}
+            {previewImage ? (
+              <img
+                src={previewImage}
+                alt="Profile Preview"
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <span className="absolute inset-0 flex items-center justify-center text-gray-400">
+                Profile Preview
+              </span>
+            )}
+          </div>
+          <label htmlFor="profile-image" className="text-blue-500 mb-4 cursor-pointer">
+            Pilih Gambar
             <input
               type="file"
               id="profile-image"
               onChange={handleFileChange}
               accept="image/*"
+              className="hidden"
             />
-            Select Image
           </label>
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
           <button
-            className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${
-              isLoading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`bg-blue-500 text-white py-2 px-4 rounded ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             onClick={handleImageUpdate}
             disabled={isLoading}
           >
-            {isLoading ? "Uploading..." : "Update Image"}
+            {isLoading ? "Uploading..." : "Perbarui Gambar"}
           </button>
         </div>
       </div>
@@ -112,4 +128,4 @@ const SectionSetting: FC<{ user: User; onClose: OnClose }> = ({
   );
 };
 
-export default SectionSetting;
+export default Modal;
